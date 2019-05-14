@@ -9,7 +9,12 @@ from pulsar.tools import ToolBox
 from pulsar.tools.authorization import get_authorizer
 from pulsar import messaging
 from galaxy.objectstore import build_object_store_from_config
-from galaxy.tools.deps import DependencyManager
+try:
+    # If galaxy-lib or Galaxy 19.05 present.
+    from galaxy.tools.deps import DependencyManager
+except ImportError:
+    # If galaxy-tool-util or Galaxy 19.09 present.
+    from galaxy.tool_util.deps import DependencyManager
 from galaxy.jobs.metrics import JobMetrics
 from galaxy.util.bunch import Bunch
 
