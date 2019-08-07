@@ -23,7 +23,7 @@ def preprocess(job_directory, setup_actions, action_executor, object_store=None)
 
     preprocessing_time = time.time() - timing_start
     job_directory.store_metadata("preprocessing_time", preprocessing_time)
-
+    log.debug("Files processed in %fs" % preprocessing_time)
     # To work with custom staging_time plugin
     with open(job_directory.metadata_directory() + "/__instrument_staging_time_preprocessing_time", "w+") as txt:
         txt.write(str(preprocessing_time))
