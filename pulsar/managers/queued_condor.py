@@ -7,6 +7,9 @@ from .base.external import ExternalBaseManager
 from ..managers import status
 
 from logging import getLogger
+
+import time
+
 log = getLogger(__name__)
 
 
@@ -27,6 +30,7 @@ class CondorQueueManager(ExternalBaseManager):
         self.state_cache = {}
 
     def launch(self, job_id, command_line, submit_params={}, dependencies_description=None, env=[], setup_params=None):
+        timing_start = time.time()
         self._check_execution_with_tool_file(job_id, command_line)
         job_file_path = self._setup_job_file(
             job_id,
@@ -46,6 +50,13 @@ class CondorQueueManager(ExternalBaseManager):
         )
         submit_file_contents = build_submit_description(**build_submit_params)
         submit_file = self._write_job_file(job_id, "job.condor.submit", submit_file_contents)
+        tool_preparation_time = time.time() - timing_start
+
+        log.debug("Tool Preparation finished in %fs" % tool_preparation_time)
+        metadata_path = self._job_directory(job_id).metadata_directory()
+        with open(metadata_path + "/__instrument_staging_time_tool_preparation_time", "w+") as txt:
+            txt.write(str(tool_preparation_time))
+
         external_id, message = condor_submit(submit_file)
         if not external_id:
             raise Exception(message)
