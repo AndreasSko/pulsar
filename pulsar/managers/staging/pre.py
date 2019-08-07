@@ -9,6 +9,7 @@ log = logging.getLogger(__name__)
 
 def preprocess(job_directory, setup_actions, action_executor, object_store=None):
     timing_start = time.time()
+
     for setup_action in setup_actions:
         name = setup_action["name"]
         input_type = setup_action["type"]
@@ -19,8 +20,13 @@ def preprocess(job_directory, setup_actions, action_executor, object_store=None)
         description = "Staging %s '%s' via %s to %s" % (input_type, name, action, path)
         log.debug(description)
         action_executor.execute(lambda: action.write_to_path(path), "action[%s]" % description)
+
     preprocessing_time = time.time() - timing_start
     job_directory.store_metadata("preprocessing_time", preprocessing_time)
+
+    # To work with custom staging_time plugin
+    with open(job_directory.metadata_directory() + "/__instrument_stagingtime_preprocessing_time", "w+") as txt:
+        txt.write(str(preprocessing_time))
 
 
 __all__ = ('preprocess',)
