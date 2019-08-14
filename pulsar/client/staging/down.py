@@ -6,6 +6,7 @@ from os.path import join, relpath
 from ..action_mapper import FileActionMapper
 from ..staging import COMMAND_VERSION_FILENAME
 
+import time
 
 log = getLogger(__name__)
 
@@ -61,10 +62,19 @@ class ResultsCollector(object):
         self.metadata_directory_contents = pulsar_outputs.metadata_directory_contents or []
 
     def collect(self):
+        timing_start = time.time()
         self.__collect_working_directory_outputs()
         self.__collect_outputs()
         self.__collect_version_file()
         self.__collect_other_working_directory_files()
+
+        collect_time = time.time() - timing_start
+        log.debug("Collection complete in %f seconds." % collect_time)
+        collection_time_path = self.output_collector.job_directory.metadata_directory() \
+                                + "/__instrument_staging_time_down_collection_time"
+        with open(collection_time_path, "w+") as txt:
+            txt.write(str(collect_time))
+
         self.__collect_metadata_directory_files()
         return self.exception_tracker.collection_failure_exceptions
 
